@@ -1,0 +1,68 @@
+# ===========================================
+# 订单管理系统 - 主配置文件
+# ===========================================
+
+# ---------- 应用基础配置 ----------
+spring:
+  application:
+    name: ordersystem
+
+  # ---------- 数据源（MySQL） ----------
+  datasource:
+    url: jdbc:mysql://localhost:3306/ordersystem?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  # ---------- Redis ----------
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password:
+      database: 0
+      timeout: 10s
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1ms
+
+  # ---------- Kafka ----------
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    consumer:
+      group-id: ordersystem-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+# ---------- 服务器配置 ----------
+server:
+  port: 8087
+  servlet:
+    context-path: /api
+
+# ---------- MyBatis-Plus ----------
+mybatis-plus:
+  mapper-locations: classpath*:mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true  # 下划线转驼峰
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl  # 打印 SQL 日志
+  global-config:
+    db-config:
+      id-type: auto  # 数据库自增主键
+      logic-delete-field: deleted  # 全局逻辑删除字段
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+# ---------- 自定义配置 ----------
+app:
+  jwt:
+    secret: ordersystem-jwt-secret-key-please-change-in-production
+    expiration: 86400000  # 24 小时（毫秒）
+    header: Authorization
+    prefix: "Bearer "
