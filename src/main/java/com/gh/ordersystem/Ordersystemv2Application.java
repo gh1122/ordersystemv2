@@ -1,4 +1,4 @@
-package com.gh.ordersystemv2;
+package com.gh.ordersystem;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
