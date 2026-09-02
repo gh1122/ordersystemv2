@@ -10,18 +10,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.annotation.AccessType;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+
 import com.gh.ordersystem.service.UserService;
+import com.gh.ordersystem.service.impl.UserServiceImpl;
 import jakarta.validation.Valid;
 
 @RestController
 public class UserController {
 
   @Autowired
-  UserService UserService;
+  UserServiceImpl UserServiceImpl;
 
   @PostMapping("/user/register")
   public BaseVo<UserVo> register(@RequestBody @Valid UserRegisterDTO UserRegisterDTO) {
-    return UserService.register(UserRegisterDTO);
+    return UserServiceImpl.register(UserRegisterDTO);
   }
 
 }
