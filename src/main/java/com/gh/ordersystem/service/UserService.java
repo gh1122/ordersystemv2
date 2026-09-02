@@ -7,7 +7,7 @@ import com.gh.ordersystem.model.dto.UserRegisterDTO;
 import com.gh.ordersystem.model.vo.BaseVo;
 import com.gh.ordersystem.model.vo.UserVo;
 import com.gh.ordersystem.repository.UserMapper;
-import com.gh.ordersystem.model.entry.User;
+import com.gh.ordersystem.model.entity.User;
 import com.gh.ordersystem.model.vo.BaseVo;
 
 @Service

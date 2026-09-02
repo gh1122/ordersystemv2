@@ -5,7 +5,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Options;
 import org.apache.ibatis.annotations.Select;
 
-import com.gh.ordersystem.model.entry.User;
+import com.gh.ordersystem.model.entity.User;
 
 @Mapper
 public interface UserMapper {

@@ -1,4 +1,4 @@
-package com.gh.ordersystem.model.entry;
+package com.gh.ordersystem.model.entity;
 
 import java.time.LocalDateTime;
 
