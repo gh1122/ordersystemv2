@@ -11,6 +11,7 @@ import org.springframework.data.annotation.AccessType;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import com.gh.ordersystem.service.UserService;
+import jakarta.validation.Valid;
 
 @RestController
 public class UserController {
@@ -19,7 +20,7 @@ public class UserController {
   UserService UserService;
 
   @PostMapping("/user/register")
-  public BaseVo<UserVo> register(@RequestBody UserRegisterDTO UserRegisterDTO) {
+  public BaseVo<UserVo> register(@RequestBody @Valid UserRegisterDTO UserRegisterDTO) {
     return UserService.register(UserRegisterDTO);
   }
 
