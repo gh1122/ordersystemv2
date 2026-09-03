@@ -19,11 +19,11 @@ import jakarta.validation.Valid;
 public class UserController {
 
   @Autowired
-  UserServiceImpl UserServiceImpl;
+  UserService userService; // ✅ 依赖接口
 
   @PostMapping("/user/register")
   public BaseVo<UserVo> register(@RequestBody @Valid UserRegisterDTO UserRegisterDTO) {
-    return UserServiceImpl.register(UserRegisterDTO);
+    return userService.register(UserRegisterDTO);
   }
 
 }

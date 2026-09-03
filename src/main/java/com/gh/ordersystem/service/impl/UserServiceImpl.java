@@ -1,6 +1,7 @@
 package com.gh.ordersystem.service.impl;
 
 import com.gh.ordersystem.repository.UserMapper;
+import com.gh.ordersystem.service.UserService;
 import com.gh.ordersystem.model.dto.UserRegisterDTO;
 import com.gh.ordersystem.model.vo.BaseVo;
 import com.gh.ordersystem.model.vo.UserVo;
@@ -12,7 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public class UserServiceImpl {
+public class UserServiceImpl implements UserService {
   @Autowired
   UserMapper UserMapper;
 
