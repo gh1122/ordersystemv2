@@ -2,6 +2,8 @@ package com.gh.ordersystem.service.impl;
 
 import com.gh.ordersystem.repository.UserMapper;
 import com.gh.ordersystem.service.UserService;
+import com.gh.ordersystem.util.JwtUtil;
+import com.gh.ordersystem.model.dto.UserLoginDTO;
 import com.gh.ordersystem.model.dto.UserRegisterDTO;
 import com.gh.ordersystem.model.vo.BaseVo;
 import com.gh.ordersystem.model.vo.UserVo;
@@ -9,13 +11,68 @@ import com.gh.ordersystem.model.vo.UserVo;
 import com.gh.ordersystem.model.entity.User;
 import com.gh.ordersystem.model.enums.ErrorCode;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
 public class UserServiceImpl implements UserService {
   @Autowired
   UserMapper UserMapper;
+
+  @Autowired
+  private PasswordEncoder passwordEncoder;
+
+  @Autowired
+  private JwtUtil jwtUtil;
+
+  @Override
+  public BaseVo<Map<String, String>> login(UserLoginDTO dto) {
+    // 1. 查用户
+    User user = UserMapper.findByUsername(dto.getUsername());
+    if (user == null) {
+      return BaseVo.error(ErrorCode.USER_NOT_FOUND.getCode(),
+          ErrorCode.USER_NOT_FOUND.getMessage());
+    }
+
+    // 2. 比对密码（BCrypt）
+    if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
+      return BaseVo.error(ErrorCode.PASSWORD_ERROR.getCode(),
+          ErrorCode.PASSWORD_ERROR.getMessage());
+    }
+
+    // 3. 签发 JWT
+    String token = jwtUtil.createToken(user.getId(), user.getUsername());
+
+    // 4. 返回 token
+    Map<String, String> data = new HashMap<>();
+    data.put("token", token);
+    return BaseVo.success(data);
+    // String username = dto.getUsername();
+    // String password = dto.getPassword();
+
+    // User user = UserMapper.findByUsername(username);
+    // if (user == null) {
+    // return BaseVo.error(ErrorCode.USER_NOT_FOUND.getCode(),
+    // ErrorCode.USER_NOT_FOUND.getMessage());
+    // }
+
+    // if (!passwordEncoder.matches(password, user.getPassword())) {
+    // return BaseVo.error(ErrorCode.PASSWORD_ERROR.getCode(),
+    // ErrorCode.PASSWORD_ERROR.getMessage());
+    // }
+
+    // // 生成 JWT token
+    // String token = jwtUtil.generateToken(user);
+
+    // Map<String, String> responseData = new HashMap<>();
+    // responseData.put("token", token);
+
+    // return BaseVo.success(responseData);
+  }
 
   public BaseVo<UserVo> register(UserRegisterDTO UserRegisterDTO) {
     // 1.用户名不能为空 查询数据库是否有重复用户名
@@ -49,7 +106,7 @@ public class UserServiceImpl implements UserService {
     }
     User newUser = new User();
     newUser.setUsername(username);
-    newUser.setPassword(password);
+    newUser.setPassword(passwordEncoder.encode(password));
     UserMapper.insertUser(newUser);
 
     UserVo userVo = new UserVo();

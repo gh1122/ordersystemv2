@@ -2,9 +2,12 @@ package com.gh.ordersystem.controller;
 
 import org.springframework.web.bind.annotation.RestController;
 
+import com.gh.ordersystem.model.dto.UserLoginDTO;
 import com.gh.ordersystem.model.dto.UserRegisterDTO;
 import com.gh.ordersystem.model.vo.BaseVo;
 import com.gh.ordersystem.model.vo.UserVo;
+
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.annotation.AccessType;
@@ -26,4 +29,8 @@ public class UserController {
     return userService.register(UserRegisterDTO);
   }
 
+  @PostMapping("/login")
+  public BaseVo<Map<String, String>> login(@Valid @RequestBody UserLoginDTO dto) {
+    return userService.login(dto);
+  }
 }

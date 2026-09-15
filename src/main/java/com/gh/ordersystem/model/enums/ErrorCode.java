@@ -10,7 +10,9 @@ public enum ErrorCode {
   USERNAME_EXISTS(1001, "用户名已存在"),
   USERNAME_EMPTY(1002, "用户名不能为空"),
   PASSWORD_LENGTH_ERROR(1003, "密码长度必须在6到20位之间"),
-  PASSWORD_NOT_MATCH(1004, "确认密码与密码不一致");
+  PASSWORD_NOT_MATCH(1004, "确认密码与密码不一致"),
+  USER_NOT_FOUND(1005, "用户不存在"),
+  PASSWORD_ERROR(1006, "密码错误");
 
   private final int code;
   private final String message;
