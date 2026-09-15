@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import com.gh.ordersystem.service.UserService;
 import com.gh.ordersystem.service.impl.UserServiceImpl;
+
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
 @RestController
@@ -33,4 +35,11 @@ public class UserController {
   public BaseVo<Map<String, String>> login(@Valid @RequestBody UserLoginDTO dto) {
     return userService.login(dto);
   }
+
+  @PostMapping("/logout")
+  public BaseVo<String> logout(HttpServletRequest request) {
+    Integer userId = (Integer) request.getAttribute("userId");
+    return userService.logout(userId);
+  }
+
 }

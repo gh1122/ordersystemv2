@@ -3,6 +3,7 @@ package com.gh.ordersystem.service.impl;
 import com.gh.ordersystem.repository.UserMapper;
 import com.gh.ordersystem.service.UserService;
 import com.gh.ordersystem.util.JwtUtil;
+import com.gh.ordersystem.util.RedisUtil;
 import com.gh.ordersystem.model.dto.UserLoginDTO;
 import com.gh.ordersystem.model.dto.UserRegisterDTO;
 import com.gh.ordersystem.model.vo.BaseVo;
@@ -29,6 +30,9 @@ public class UserServiceImpl implements UserService {
   @Autowired
   private JwtUtil jwtUtil;
 
+  @Autowired
+  private RedisUtil redisUtil;
+
   @Override
   public BaseVo<Map<String, String>> login(UserLoginDTO dto) {
     // 1. 查用户
@@ -46,6 +50,11 @@ public class UserServiceImpl implements UserService {
 
     // 3. 签发 JWT
     String token = jwtUtil.createToken(user.getId(), user.getUsername());
+
+    // ✅ 新增：把 userId 存到 Redis，key = "login:userId:1"
+    // 24小时过期（和 JWT 一样）
+    String redisKey = "login:userId:" + user.getId();
+    redisUtil.set(redisKey, user.getId(), 24 * 60);
 
     // 4. 返回 token
     Map<String, String> data = new HashMap<>();
@@ -114,5 +123,13 @@ public class UserServiceImpl implements UserService {
     userVo.setUsername(newUser.getUsername());
     return BaseVo.success(userVo);
     // return BaseVo.success("注册成功");
+  }
+
+  @Override
+  public BaseVo<String> logout(Integer userId) {
+    // 删掉 Redis 里的登录态 → Token 立即失效
+    String redisKey = "login:userId:" + userId;
+    redisUtil.delete(redisKey);
+    return BaseVo.success("退出登录成功");
   }
 }

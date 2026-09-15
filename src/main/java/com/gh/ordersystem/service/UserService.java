@@ -15,4 +15,6 @@ public interface UserService {
   BaseVo<UserVo> register(UserRegisterDTO dto);
 
   BaseVo<Map<String, String>> login(UserLoginDTO dto);
+
+  BaseVo<String> logout(Integer userId);
 }
