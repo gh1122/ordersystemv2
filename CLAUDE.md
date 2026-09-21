@@ -14,6 +14,7 @@
 
 - **项目名**：order-system（订单管理系统）
 - **用途**：Spring Boot 综合练习项目，覆盖企业级开发核心知识点
+- **长期目标**：完成 CRUD 全栈能力打底 → 转向 AI 应用全栈开发
 - **技术栈**：
   - Spring Boot 3.x（Web、Security、AOP、Scheduling）
   - MyBatis-Plus（ORM）
@@ -147,12 +148,52 @@ t_order_item  —— 订单明细表
 t_product     —— 商品表
 ```
 
-## 学习顺序建议
+## 学习顺序建议（CRUD 全栈阶段）
 
-1. **第一步**：搭建项目骨架 + 配置 MySQL/Redis/Kafka（Docker）
-2. **第二步**：用户注册登录 + JWT Token 体系 + 拦截器
-3. **第三步**：用户列表 CRUD + 分页 + 全局异常处理
-4. **第四步**：RBAC 权限模型 + 动态菜单
-5. **第五步**：订单系统 + 事务 + 聚合统计
-6. **第六步**：定时任务 + Kafka 异步消息
-7. **第七步**：CORS 跨域 + 前后端联调
+> 当前进度：**第二步完成** ✅ — 用户注册登录 + JWT 鉴权已实现
+
+1. ✅ **第一步**：搭建项目骨架 + 配置 MySQL/Redis/Kafka（Docker）
+2. ✅ **第二步**：用户注册登录 + JWT Token 体系 + 拦截器
+3. ⬜ **第三步**：用户列表 CRUD + 分页 + 全局异常处理
+4. ⬜ **第四步**：RBAC 权限模型 + 动态菜单
+5. ⬜ **第五步**：订单系统 + 事务 + 聚合统计
+6. ⬜ **第六步**：定时任务 + Kafka 异步消息
+7. ⬜ **第七步**：CORS 跨域 + 前后端联调
+
+## 后续规划：AI 应用全栈方向
+
+> CRUD 项目全部完成后，重心转向 AI 全栈开发。前端背景是优势——AI 产品的交互体验是核心竞争力。
+
+### 阶段一：LLM 应用开发基础（1-2 个月）
+
+- 调用大模型 API（OpenAI / DeepSeek / 通义千问）
+- Prompt Engineering（System Prompt、Few-shot、Chain of Thought）
+- 流式响应（SSE）实现打字机效果
+- Function Calling（让大模型调用你的函数，Agent 的基础）
+- **练手项目**：AI 聊天助手（带上下文记忆 + 流式输出）
+- **技术栈**：Spring Boot + SSE + OpenAI API / Spring AI
+
+### 阶段二：RAG + 向量数据库（1-2 个月）
+
+- Embedding 文本向量化
+- 向量数据库（Milvus / Chroma）
+- RAG 流程：文档切分 → 向量化 → 存储 → 检索 → 喂给 LLM
+- **练手项目**：知识库问答系统（上传文档 → AI 基于文档回答）
+- **技术栈**：Spring AI + Milvus / Python + LangChain + Chroma
+
+### 阶段三：Agent + 工具调用（2-3 个月）
+
+- Agent 框架（LangChain / Spring AI）
+- Tool Use（给 AI 注册工具：搜索、数据库查询、API 调用）
+- 多轮对话编排、记忆管理
+- **练手项目**：AI 订单助手（自然语言查询/操作订单系统）
+- **技术栈**：Spring AI + Function Calling 或 Python + LangChain
+
+### 技术路线选择
+
+| 路线 | 适合场景 | 技术栈 |
+|------|---------|--------|
+| Java 路线 | 企业内部 AI 应用，延续现有基础 | Spring AI + LangChain4j + Milvus |
+| Python 路线 | 深入 AI 原理，生态更成熟 | FastAPI + LangChain + Chroma |
+
+建议：先走 Java 路线快速出成果，同步学 Python 基础（AI 生态主力语言）。

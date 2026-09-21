@@ -19,7 +19,8 @@ public class RedisUtil {
    * @param minutes 过期分钟数
    */
   public void set(String key, Object value, long minutes) {
-    redisTemplate.opsForValue().set(key, value, minutes, TimeUnit.MINUTES);
+    // String.valueOf() 可以把任意类型转成 String，包括 null
+    redisTemplate.opsForValue().set(key, String.valueOf(value), minutes, TimeUnit.MINUTES);
   }
 
   /**
