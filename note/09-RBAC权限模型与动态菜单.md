@@ -244,3 +244,55 @@ controller/MenuController.java    # GET /menu/tree（全量）+ GET /menu/nav（
 - [ ] 细粒度按钮权限：`t_menu.permission` 字段已备好（如 `system:user:delete`），可升级 @RequireRole 支持 permission 维度
 - [ ] 前端联调：Vue/React 侧动态路由 + 侧边栏渲染 `/menu/nav` 返回的树（第七步统一做）
 - [ ] 下一大步：**第五步 订单系统 + @Transactional 事务 + 聚合统计**（新开笔记 10）
+
+## 十、附：getNavMenu 的 XML + JOIN 对照版（未改代码，留作重构参考）
+
+> 背景：第 3 步用的是「三次单表查询 + Wrapper 零手写 SQL」。有建议改用 MyBatis XML 手写 JOIN。
+> 结论先行：**混合使用是业界惯例**——简单单表继续 Wrapper，多表 JOIN/聚合统计才上 XML。
+> 当前项目以学习为目的，Wrapper 版保留（每步查哪张表一目了然），XML 版记在这里备查。
+
+### 两种方式对比
+
+| 维度 | QueryWrapper（当前写法） | XML + 手写 SQL |
+|------|------------------------|----------------|
+| SQL 来源 | Java 动态拼出 | 手写明文 |
+| 简单单表查询 | 一行链式调用 | 啰嗦（接口 + XML 两份） |
+| 多表 JOIN | 很难写 | 主场，自由 |
+| SQL 调优 | 藏在 Java 里，没法直接 EXPLAIN | 复制就能跑，DBA 能直接 review |
+| 数据库耦合 | 低 | 高（方言差异自己扛） |
+| SQL 注入 | 参数自动预编译 | 用 `#{}` 同样安全，`${}` 才有风险 |
+
+前端类比：Wrapper ≈ Prisma 链式 API（`findMany({ where, orderBy })`）；XML ≈ 手写原生查询，完全控制但要自己写每一条。
+
+### XML 版本（1 条 JOIN 替代 3 次往返）
+
+`MenuMapper.java` 加方法：
+
+```java
+List<Menu> selectMenusByUserId(Integer userId);
+```
+
+`resources/mapper/MenuMapper.xml`：
+
+```xml
+<select id="selectMenusByUserId" resultType="com.gh.ordersystem.model.entity.Menu">
+  SELECT DISTINCT m.*
+  FROM t_menu m
+  JOIN t_role_menu rm ON m.id = rm.menu_id
+  JOIN t_user_role ur ON rm.role_id = ur.role_id
+  WHERE ur.user_id = #{userId}
+  ORDER BY m.sort
+</select>
+```
+
+`MenuServiceImpl.getNavMenu` 相应简化为：判空 userId → 直接调上面方法 → buildTree。
+
+### 改造时的得失清单
+
+- **得**：3 次数据库往返 → 1 次；`DISTINCT` 替代 Java 里的 `distinct()` 去重；SQL 关系一眼看懂。
+- **失**：Wrapper 版的「roleIds 为空防非法 SQL」判空逻辑内聚在 Java，XML 版改为由 SQL 语义兜底（JOIN 查不到自然返回空）；字符串列名，改表结构时编译期不报错。
+- **注意**：Mapper 接口方法与 XML 的 `id` 必须一致，XML 位置要和 `application.yml` 里 `mybatis-plus.mapper-locations` 对上。
+
+### 顺手可做的低成本升级（不用 XML 也能受益）
+
+`QueryWrapper` → `LambdaQueryWrapper`：`wrapper.in("role_id", roleIds)` → `wrapper.in(RoleMenu::getRoleId, roleIds)`。方法引用代替字符串列名，列名写错/改字段名时编译期直接报错。RoleInterceptor 里已经在用这个写法了。
