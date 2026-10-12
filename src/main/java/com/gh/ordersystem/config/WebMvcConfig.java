@@ -6,12 +6,15 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import com.gh.ordersystem.interceptor.JwtInterceptor;
+import com.gh.ordersystem.interceptor.RoleInterceptor;
 
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
 
   @Autowired
   private JwtInterceptor jwtInterceptor;
+  @Autowired
+  private RoleInterceptor roleInterceptor;
 
   @Override
   public void addInterceptors(InterceptorRegistry registry) {
@@ -21,5 +24,8 @@ public class WebMvcConfig implements WebMvcConfigurer {
             "/login",
             "/user/register",
             "/hello");
+
+    registry.addInterceptor(roleInterceptor)
+        .addPathPatterns("/**"); // 拦截所有请求
   }
 }

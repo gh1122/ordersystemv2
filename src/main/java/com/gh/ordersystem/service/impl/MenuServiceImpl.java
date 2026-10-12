@@ -2,6 +2,8 @@ package com.gh.ordersystem.service.impl;
 
 import com.gh.ordersystem.model.vo.MenuVo;
 import com.gh.ordersystem.repository.MenuMapper;
+import com.gh.ordersystem.repository.RoleMenuMapper;
+import com.gh.ordersystem.repository.UserRoleMapper;
 import com.gh.ordersystem.service.MenuService;
 
 import java.util.ArrayList;
@@ -16,11 +18,20 @@ import org.springframework.stereotype.Service;
 import com.gh.ordersystem.model.vo.BaseVo;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.gh.ordersystem.model.entity.Menu;
+import com.gh.ordersystem.model.entity.RoleMenu;
+import com.gh.ordersystem.model.entity.UserRole;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class MenuServiceImpl implements MenuService {
   @Autowired
   private MenuMapper menuMapper;
+  @Autowired
+  private UserRoleMapper userRoleMapper;
+  @Autowired
+  private RoleMenuMapper roleMenuMapper;
 
   /**
    * 获取完整菜单树（不做权限过滤）
@@ -42,6 +53,81 @@ public class MenuServiceImpl implements MenuService {
     List<Menu> menus = menuMapper.selectList(wrapper);
 
     // 2. 平铺列表 → 树形结构（核心转换在 buildTree 里）
+    return BaseVo.success(buildTree(menus));
+  }
+
+  /**
+   * 获取导航菜单（按用户角色权限过滤）
+   *
+   * 查询链路（三次单表查询，全程零手写 SQL）：
+   * userId → t_user_role → roleIds
+   * → t_role_menu → menuIds
+   * → t_menu where id in (menuIds) → buildTree
+   *
+   * 前端类比：routes.filter(route => route.meta.roles.includes(myRole))
+   * 区别在于"我的角色有哪些菜单"要查三张表才知道。
+   *
+   * userId 从哪来？Controller 从 request.getAttribute("userId") 取——
+   * 那是 JwtInterceptor 解析 Token 后挂上去的（还附带过 Redis 登录态校验）。
+   * Service 不碰 HTTP 概念，只管"给 userId，还菜单树"。
+   */
+  @Override
+  public BaseVo<List<MenuVo>> getNavMenu(Integer userId) {
+    // 0. userId 为空说明请求没经过正常鉴权，直接拒绝
+    if (userId == null) {
+      return BaseVo.error(400, "用户ID不能为空");
+    }
+
+    // 1. 查 t_user_role → roleIds
+    // SELECT * FROM t_user_role WHERE user_id = ?
+    QueryWrapper<UserRole> userRoleWrapper = new QueryWrapper<>();
+    userRoleWrapper.eq("user_id", userId);
+    List<UserRole> userRoles = userRoleMapper.selectList(userRoleWrapper);
+    log.info("userRoles: {}", userRoles);
+    // log.info("userRoles: {}", userRoles); // userRoles[UserRole(id=1, userId=1,
+    // roleId=1)]
+    List<Integer> roleIds = userRoles.stream()
+        .map(UserRole::getRoleId)
+        .collect(Collectors.toList());
+    log.info("roleIds: {}", roleIds);
+    // ⚠️ 防坑点 1：roleIds 为空必须提前返回
+    // 没分配任何角色的用户（新注册的）roleIds 是空列表，
+    // 空列表进 wrapper.in() 会生成非法 SQL：WHERE role_id IN () → 直接报错
+    // 前端类比：ids.map(...) 之前先判 if (!ids.length) return []
+    if (roleIds.isEmpty()) {
+      return BaseVo.success(new ArrayList<>());
+    }
+
+    // 2. 查 t_role_menu → menuIds
+    // SELECT * FROM t_role_menu WHERE role_id IN (1,2,...)
+    // ⚠️ 防坑点 2：多角色的菜单会重叠，必须去重
+    // 比如管理员和审计员都能看订单管理，menuIds 里就出现两个相同的 id
+    // （去重不影响正确性，但 IN (1,2,3,3) 既浪费也不干净）
+    // 前端类比：[...new Set(ids)]
+    QueryWrapper<RoleMenu> roleMenuWrapper = new QueryWrapper<>();
+    roleMenuWrapper.in("role_id", roleIds);
+    List<RoleMenu> roleMenus = roleMenuMapper.selectList(roleMenuWrapper);
+    log.info("roleMenus: {}", roleMenus);
+
+    List<Integer> menuIds = roleMenus.stream()
+        .map(RoleMenu::getMenuId)
+        .distinct()
+        .collect(Collectors.toList());
+
+    // ⚠️ 防坑点 1 同款：menuIds 也可能为空（角色存在但一个菜单都没配）
+    if (menuIds.isEmpty()) {
+      return BaseVo.success(new ArrayList<>());
+    }
+
+    // 3. 查 t_menu → buildTree
+    // SELECT * FROM t_menu WHERE id IN (1,2,...) ORDER BY sort ASC
+    // 不排序的话树内菜单顺序不保证
+    QueryWrapper<Menu> menuWrapper = new QueryWrapper<>();
+    menuWrapper.in("id", menuIds).orderByAsc("sort");
+
+    List<Menu> menus = menuMapper.selectList(menuWrapper);
+
+    // 树组装逻辑零新增——第 2 步抽好的 buildTree 直接复用
     return BaseVo.success(buildTree(menus));
   }
 

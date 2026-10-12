@@ -13,5 +13,7 @@ public interface MenuService {
 
   public BaseVo<List<MenuVo>> getMenuTree();
 
+  // GET /menu/nav ，返回 BaseVo<List<MenuVo>>
+  BaseVo<List<MenuVo>> getNavMenu(Integer userId);
   // BaseVo<UserVo> register(UserRegisterDTO dto);
 }

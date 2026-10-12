@@ -16,6 +16,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.annotation.AccessType;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import com.gh.ordersystem.annotation.RequireRole;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -65,6 +66,9 @@ public class UserController {
     return userService.updateUser(dto);
   }
 
+  // 贴上 @RequireRole：只有 admin 角色能删除用户
+  // 权限校验逻辑在 RoleInterceptor 里，方法本身零改动 —— 这就是注解方案的价值
+  @RequireRole("admin")
   @DeleteMapping("/user/{id}")
   public BaseVo<String> deleteUser(@PathVariable Integer id) {
     return userService.deleteUser(id);
